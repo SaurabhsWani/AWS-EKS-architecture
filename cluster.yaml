@@ -1,0 +1,13 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:                      
+  name: swcluster                #Give any name to your cluster 
+  region: ap-south-1             #Mention your region
+
+nodeGroups:
+   - name: ng1                   #Give any name to your Nodegroup 
+     desiredCapacity: 2          #Change as per your need
+     instanceType: t2.micro      #Change as per your need
+     ssh:
+        publicKeyName: asdf      #Your Key pair Name
