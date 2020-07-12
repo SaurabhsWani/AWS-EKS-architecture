@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql               #Give suitable name as you want for service
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wordpress
+    tier: mysql
+  clusterIP: None      #Here we mention the clusterIP none means existing only one
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql_pvc                     #Give suitable name as you want for pvc
+  labels:
+    app: wordpress
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi                   #Increase size as your need
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-mysql              #Give suitable name as you want 
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:5.6              #you can change mysql ami
+        name: mysql              #Give suitable name as you want for ec2 instance
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password          #this password that we store in secretbox
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql       #Don't change path
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim    #this name is same as mention above for pvc
